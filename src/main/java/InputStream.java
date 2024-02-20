@@ -19,7 +19,7 @@ public class InputStream {
 
     private static final int LICZBA_PLIKOW = 12;
     private static final int MAX_LICZBA_BLEDOW = 5;
-    private static InformacjeOPliku[] tablicaInformacjiOPlikach = new InformacjeOPliku[LICZBA_PLIKOW];
+    private static final InformacjeOPliku[] tablicaInformacjiOPlikach = new InformacjeOPliku[LICZBA_PLIKOW];
     private static DateFormat df = null;
 
     public void generuj() throws IOException {
@@ -69,32 +69,32 @@ public class InputStream {
             dataRozpoczecia = df.parse(DATA_ROZPOCZECIA);
             dataZakonczenia = df.parse(DATA_ZAKONCZENIA);
         } catch (ParseException e) {
-            System.err.println("Nie udalo się wczytac podanych dat rozpoczecia i zakonczenia!");
+            System.err.println("Nie udało się wczytać podanych dat rozpoczęcia i zakończenia!");
             System.exit(1);
         }
 
         String[] linie = new String[LICZBA_PLIKOW];
 
-        // Przesuniecie do pierwszych notowan z zakresu dat
+        // Przesuniecie do pierwszych notowań z zakresu dat
 
-        String[] splitResult = null;
+        String[] splitResult;
         for (int i = 0; i < LICZBA_PLIKOW; i++) {
             while ((linie[i] = readers[i].readLine()) != null) {
                 splitResult = linie[i].split(",");
-                Date dataNotowania = null;
+                Date dataNotowania;
                 try {
                     dataNotowania = df.parse(splitResult[0]);
                     if (dataNotowania.compareTo(dataRozpoczecia) >= 0) {
                         break;
                     }
-                } catch (Exception e) {
+                } catch (Exception ignored) {
                 }
             }
         }
 
         Date iteratorDaty = dataRozpoczecia;
 
-        // Glowna petla
+        // Główna pętla
 
         int liczbaBledow = 0;
         while ((iteratorDaty.compareTo(dataZakonczenia) <= 0)
@@ -102,44 +102,50 @@ public class InputStream {
 
             for (int i = 0; i < LICZBA_PLIKOW; i++) {
                 try {
-                    Date dataNotowania = wyodrebnijDate(linie[i]);
+                    Date dataNotowania = null;
+
+                    if (linie[i] != null) {
+                        dataNotowania = wyodrebnijDate(linie[i]);
+                    }
 
                     if (dataNotowania == null) {
                         continue;
                     }
 
-                    if ((dataNotowania.compareTo(iteratorDaty) == -1)) {
-                        // Data ostatnio wczytanego notowania wczesniejsza niz
-                        // biezaca data - pobierz kolejne notowanie!
+                    if ((dataNotowania.compareTo(iteratorDaty) < 0)) {
+                        // Jeśli data ostatnio wczytanego notowania jest wcześniejsza niż
+                        // bieżąca data, pobierz kolejne notowanie!
                         if ((linie[i] = readers[i].readLine()) != null) {
                             dataNotowania = wyodrebnijDate(linie[i]);
                         }
-                    } else if ((dataNotowania.compareTo(iteratorDaty) == 1)) {
-                        // Data ostatnio wczytanego notowania poniejsza niz
-                        // biezaca data - czekaj!
+                    } else if ((dataNotowania.compareTo(iteratorDaty) > 0)) {
+                        // Jeśli Data ostatnio wczytanego notowania jest późniejsza niż
+                        // bieżąca data, wówczas czekaj!
                         continue;
                     }
 
                     if ((dataNotowania != null) && (dataNotowania.equals(iteratorDaty))) {
                         // Tworzenie obiektu notowania
-                        splitResult = linie[i].split(",");
-                        KursAkcji kurs = new KursAkcji(
-                                tablicaInformacjiOPlikach[i].getNazwaSpolki(),
-                                tablicaInformacjiOPlikach[i].getNazwaMarketu(),
-                                dataNotowania,
-                                Float.valueOf(splitResult[1].trim()),
-                                Float.valueOf(splitResult[2].trim()),
-                                Float.valueOf(splitResult[3].trim()),
-                                Float.valueOf(splitResult[4].trim()),
-                                Float.valueOf(splitResult[5].trim()));
-                        System.out.println(kurs.toString());
+                        if (linie[i] != null) {
+                            splitResult = linie[i].split(",");
+                            KursAkcji kurs = new KursAkcji(
+                                    tablicaInformacjiOPlikach[i].getNazwaSpolki(),
+                                    tablicaInformacjiOPlikach[i].getNazwaMarketu(),
+                                    dataNotowania,
+                                    Float.valueOf(splitResult[1].trim()),
+                                    Float.valueOf(splitResult[2].trim()),
+                                    Float.valueOf(splitResult[3].trim()),
+                                    Float.valueOf(splitResult[4].trim()),
+                                    Float.valueOf(splitResult[5].trim()));
+                            System.out.println(kurs);
+                        }
                     }
                 } catch (Exception e) {
                     liczbaBledow++;
-                    System.err.println("Blad parsowania! [" + linie[i] + "]. Po raz: " + liczbaBledow);
+                    System.err.println("Błąd parsowania! [" + linie[i] + "]. Po raz: " + liczbaBledow);
 
                     if (liczbaBledow >= MAX_LICZBA_BLEDOW) {
-                        System.err.println("Za duzo bledow!");
+                        System.err.println("Za dużo błędów!");
                         break;
                     }
                 }
@@ -163,7 +169,7 @@ public class InputStream {
         if (!splitResult[0].equals("Date")) {
             try {
                 return df.parse(splitResult[0]);
-            } catch (ParseException e) {
+            } catch (ParseException ignored) {
             }
         }
         return null;
@@ -171,9 +177,9 @@ public class InputStream {
 
     // Klasa pomocnicza
     private static class InformacjeOPliku {
-        private String nazwaPliku;
-        private String nazwaSpolki;
-        private String nazwaMarketu;
+        private final String nazwaPliku;
+        private final String nazwaSpolki;
+        private final String nazwaMarketu;
 
         public InformacjeOPliku(String nazwaPliku, String nazwaSpolki, String nazwaMarketu) {
             this.nazwaPliku = nazwaPliku;
@@ -196,7 +202,7 @@ public class InputStream {
 
     // Klasa pomocnicza
     // AUTOR: WhiteFang34
-    // ZRODO: http://stackoverflow.com/questions/6011345/read-a-file-line-by-line-in-reverse-order
+    // ŹRÓDŁO: http://stackoverflow.com/questions/6011345/read-a-file-line-by-line-in-reverse-order
     private static class ReverseLineReader {
         private static final int BUFFER_SIZE = 8192;
 
@@ -243,7 +249,6 @@ public class InputStream {
                             lastLineBreak = c;
                             continue;
                         }
-                        lastLineBreak = c;
                         return bufToString();
                     }
                     baos.write(c);

@@ -11,7 +11,7 @@ public class KursAkcji {
 	private Float kursZamkniecia;
 	private Float obrot;
 
-	private static SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+	private static final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 	
 	public KursAkcji(String spolka, String market, Date data,
 			Float kursOtwarcia, Float wartoscMax, Float wartoscMin,
