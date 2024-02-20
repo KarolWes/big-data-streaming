@@ -232,7 +232,6 @@ public class CreateInputStream {
         private long filePos;
         private ByteBuffer buf;
         private int bufPos;
-        private byte lastLineBreak = '\n';
         private ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         public ReverseLineReader(File file, String encoding) throws IOException {
@@ -265,12 +264,10 @@ public class CreateInputStream {
 
                 while (bufPos-- > 0) {
                     byte c = buf.get(bufPos);
-                    if (c == '\r' || c == '\n') {
-                        if (c != lastLineBreak) {
-                            lastLineBreak = c;
-                            continue;
-                        }
+                    if (c == '\n') {
                         return bufToString();
+                    } else if (c == '\r') {
+                        bufPos--; // Skip the '\r'
                     }
                     baos.write(c);
                 }
