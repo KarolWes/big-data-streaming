@@ -4,6 +4,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.DateFormat;
@@ -12,7 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-public class InputStream {
+public class CreateInputStream {
 
     private static final String DATA_ROZPOCZECIA = "2001-09-05";
     private static final String DATA_ZAKONCZENIA = "2001-09-20";
@@ -24,36 +27,36 @@ public class InputStream {
 
     public void generuj() throws IOException {
         tablicaInformacjiOPlikach[0] = new InformacjeOPliku(
-                "files/tableAPPLE_NASDAQ.csv", "Apple", "NASDAQ");
+                "tableAPPLE_NASDAQ.csv", "Apple", "NASDAQ");
         tablicaInformacjiOPlikach[1] = new InformacjeOPliku(
-                "files/tableCOCACOLA_NYSE.csv", "CocaCola", "NYSE");
+                "tableCOCACOLA_NYSE.csv", "CocaCola", "NYSE");
         tablicaInformacjiOPlikach[2] = new InformacjeOPliku(
-                "files/tableDISNEY_NYSE.csv", "Disney", "NYSE");
+                "tableDISNEY_NYSE.csv", "Disney", "NYSE");
         tablicaInformacjiOPlikach[3] = new InformacjeOPliku(
-                "files/tableFORD_NYSE.csv", "Ford", "NYSE");
+                "tableFORD_NYSE.csv", "Ford", "NYSE");
         tablicaInformacjiOPlikach[4] = new InformacjeOPliku(
-                "files/tableGOOGLE_NASDAQ.csv", "Google", "NASDAQ");
+                "tableGOOGLE_NASDAQ.csv", "Google", "NASDAQ");
         tablicaInformacjiOPlikach[5] = new InformacjeOPliku(
-                "files/tableHONDA_NYSE.csv", "Honda", "NYSE");
+                "tableHONDA_NYSE.csv", "Honda", "NYSE");
         tablicaInformacjiOPlikach[6] = new InformacjeOPliku(
-                "files/tableIBM_NASDAQ.csv", "IBM", "NASDAQ");
+                "tableIBM_NASDAQ.csv", "IBM", "NASDAQ");
         tablicaInformacjiOPlikach[7] = new InformacjeOPliku(
-                "files/tableINTEL_NASDAQ.csv", "Intel", "NASDAQ");
+                "tableINTEL_NASDAQ.csv", "Intel", "NASDAQ");
         tablicaInformacjiOPlikach[8] = new InformacjeOPliku(
-                "files/tableMICROSOFT_NASDAQ.csv", "Microsoft", "NASDAQ");
+                "tableMICROSOFT_NASDAQ.csv", "Microsoft", "NASDAQ");
         tablicaInformacjiOPlikach[9] = new InformacjeOPliku(
-                "files/tableORACLE_NASDAQ.csv", "Oracle", "NASDAQ");
+                "tableORACLE_NASDAQ.csv", "Oracle", "NASDAQ");
         tablicaInformacjiOPlikach[10] = new InformacjeOPliku(
-                "files/tablePEPSICO_NYSE.csv", "PepsiCo", "NYSE");
+                "tablePEPSICO_NYSE.csv", "PepsiCo", "NYSE");
         tablicaInformacjiOPlikach[11] = new InformacjeOPliku(
-                "files/tableYAHOO_NASDAQ.csv", "Yahoo", "NASDAQ");
+                "tableYAHOO_NASDAQ.csv", "Yahoo", "NASDAQ");
 
         ReverseLineReader[] readers = new ReverseLineReader[LICZBA_PLIKOW];
 
         try {
             for (int i = 0; i < LICZBA_PLIKOW; i++) {
-                readers[i] = new ReverseLineReader(new File(
-                        tablicaInformacjiOPlikach[i].getNazwaPliku()), "UTF-8");
+                File file = getFile(i);
+                readers[i] = new ReverseLineReader(file, "UTF-8");
             }
         } catch (FileNotFoundException e) {
             System.err.println("Nie odnaleziono pliku");
@@ -154,6 +157,24 @@ public class InputStream {
             // Inkrementacja daty
             iteratorDaty = inkrementujDate(iteratorDaty);
         }
+    }
+
+    private static File getFile(int i) throws FileNotFoundException {
+        ClassLoader classLoader = Main.class.getClassLoader();
+        URL resourceURL = classLoader.getResource(tablicaInformacjiOPlikach[i].getNazwaPliku());
+
+        if (resourceURL == null) {
+            throw new FileNotFoundException("Plik nie został znaleziony!");
+        }
+
+        // Konwertuj URL na URI, a następnie na File
+        URI resourceURI;
+        try {
+            resourceURI = resourceURL.toURI();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+        return new File(resourceURI);
     }
 
     // Metody pomocnicze

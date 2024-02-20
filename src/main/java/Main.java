@@ -2,7 +2,7 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        InputStream inputStream = new InputStream();
+        CreateInputStream inputStream = new CreateInputStream();
         inputStream.generuj();
     }
 }
