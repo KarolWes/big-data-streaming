@@ -1,3 +1,5 @@
+import com.espertech.esper.runtime.client.EPEventService;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,7 +27,7 @@ public class CreateInputStream {
     private static final InformacjeOPliku[] tablicaInformacjiOPlikach = new InformacjeOPliku[LICZBA_PLIKOW];
     private static DateFormat df = null;
 
-    public void generuj() throws IOException {
+    public void generuj(EPEventService eventService) throws IOException {
         tablicaInformacjiOPlikach[0] = new InformacjeOPliku(
                 "tableAPPLE_NASDAQ.csv", "Apple", "NASDAQ");
         tablicaInformacjiOPlikach[1] = new InformacjeOPliku(
@@ -140,7 +142,7 @@ public class CreateInputStream {
                                     Float.valueOf(splitResult[3].trim()),
                                     Float.valueOf(splitResult[4].trim()),
                                     Float.valueOf(splitResult[5].trim()));
-                            System.out.println(kurs);
+                            eventService.sendEventBean(kurs, kurs.getClass().getName());
                         }
                     }
                 } catch (Exception e) {
