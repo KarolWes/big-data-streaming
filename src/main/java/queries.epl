@@ -1,0 +1,38 @@
+@name('answer') select istream data, spolka, kursOtwarcia-min(kursOtwarcia) as roznica
+            from KursAkcji(spolka='Oracle')#length(2)
+            having kursOtwarcia-min(kursOtwarcia) > 0
+           ;
+
+           @name('answer') select istream data, spolka, kursZamkniecia, (max(kursZamkniecia)-kursZamkniecia) as roznica
+                       from KursAkcji#ext_timed_batch(data.getTime(), 1 day)
+                       where spolka in ('IBM', 'Honda', 'Microsoft')
+@name('answer') select istream data, spolka, kursOtwarcia, kursZamkniecia
+            from KursAkcji#length(1)
+            where (kursZamkniecia - kursOtwarcia) > 0;
+@name('answer') select istream data, spolka, kursZamkniecia
+                             from KursAkcji(spolka in ('PepsiCo', 'CocaCola'))#ext_timed(data.getTime(), 1 day)
+                             having kursZamkniecia = max(kursZamkniecia);
+@name('answer') select istream data, spolka, kursZamkniecia
+                                 from KursAkcji(spolka in ('PepsiCo', 'CocaCola'))#ext_timed_batch(data.getTime(), 1 day)
+                                 having max(kursZamkniecia) = kursZamkniecia;
+@name('answer') select istream max(kursZamkniecia)
+                                      from KursAkcji#ext_timed_batch(data.getTime(), 7 day);
+@name('answer') select istream p.data, p.kursZamkniecia as kursPep, c.kursZamkniecia as kursCoc
+                                     from KursAkcji(spolka = 'CocaCola')#length(1) as c
+                                     full outer join KursAkcji(spolka = 'PepsiCo')#length(1) as p
+                                     on p.data = c.data
+                                     where p.kursZamkniecia - c.kursZamkniecia > 0;
+@name('answer') select istream cur.data, cur.spolka, (cur.kursZamkniecia - base.kursZamkniecia) as roznica
+                            from KursAkcji#length(1) as cur
+                            join KursAkcji#firstunique(spolka) as base
+                            on base.spolka = cur.spolka
+                            where (cur.kursZamkniecia - base.kursZamkniecia) > 0;
+@name('answer') select a.spolka, a.data as dataA, b.data as dataB, a.kursOtwarcia as kursA, b.kursOtwarcia as kursB
+                    from KursAkcji#ext_timed(data.getTime(), 7 day) as a
+                    full outer join
+                    KursAkcji#ext_timed(data.getTime(), 7 day) as b
+                    on a.spolka = b.spolka
+                    where b.kursOtwarcia - a.kursOtwarcia > 3;
+@name('answer') select spolka, data, obrot
+                    from KursAkcji(market = 'NYSE')#ext_timed_batch(data.getTime(), 7 day)
+                    order by obrot desc limit 3;
